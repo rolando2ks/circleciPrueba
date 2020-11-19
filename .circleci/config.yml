@@ -1,22 +1,32 @@
-version: 2.1
-orbs:
-  mvn: scx/mvn@1
+version: 2.0
+
+jobs:
+  test:
+    docker:
+      - image: circleci/openjdk:stretch
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: ./mvnw test
+
+  build:
+    docker:
+      - image: circleci/openjdk:stretch
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - run: ./mvnw -Dmaven.test.skip=true package
+
 workflows:
-  build_test_publish:
+  version: 2
+
+  build-then-test:
     jobs:
-      - mvn/build:
-          context: scx-credentials
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /.*/
-      - mvn/publish:
-          context: scx-credentials
+      - build
+      - test:
           requires:
-            - mvn/build
-          filters:
-            tags:
-              only: /^release-(.+)$/
-            branches:
-              ignore: /.*/
+            - build
