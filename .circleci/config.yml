@@ -1,0 +1,22 @@
+version: 2.1
+orbs:
+  mvn: scx/mvn@1
+workflows:
+  build_test_publish:
+    jobs:
+      - mvn/build:
+          context: scx-credentials
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
+      - mvn/publish:
+          context: scx-credentials
+          requires:
+            - mvn/build
+          filters:
+            tags:
+              only: /^release-(.+)$/
+            branches:
+              ignore: /.*/
